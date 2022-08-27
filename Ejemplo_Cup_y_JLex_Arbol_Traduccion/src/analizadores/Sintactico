@@ -1,0 +1,138 @@
+package analizadores; 
+import java_cup.runtime.*;
+import Structures.Node;
+import Structures.Arbol;
+import Structures.Production;
+import Structures.Instructions.Operacion;
+import Structures.Instructions.Instruccion;
+import Structures.Instructions.Evaluar;
+import java.util.LinkedList;
+
+parser code 
+{:
+    /**
+     * Variable en la que se almacena el arbol de sintaxis abstracta que se 
+     * genera luego del analisis sintáctico.
+     */
+    public LinkedList<Instruccion> AST;
+    public Arbol arbol;
+    /**
+     * Método al que se llama automáticamente ante algún error sintactico.
+     **/ 
+    public void syntax_error(Symbol s){ 
+        System.out.println("Error Sintáctico en la Línea " + (s.left) +
+        " Columna "+s.right+ ". No se esperaba este componente: " +s.value+"."); 
+    } 
+
+    /**
+     * Método al que se llama automáticamente ante algún error sintáctico 
+     * en el que ya no es posible una recuperación de errores.
+     **/ 
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error síntactico irrecuperable en la Línea " + 
+        (s.left)+ " Columna "+s.right+". Componente " + s.value + 
+        " no reconocido."); 
+    }  
+    public Arbol getArbol() {
+        return arbol;
+    }
+    public LinkedList<Instruccion> getAST() {
+        return AST;
+    }
+:} 
+
+terminal String PTCOMA,PARIZQ,PARDER,CORIZQ,CORDER;
+terminal String MAS,MENOS,POR,DIVIDIDO;
+terminal String ENTERO;
+terminal String DECIMAL;
+terminal String UMENOS;
+terminal String REVALUAR;
+
+non terminal ini;
+non terminal Production instrucciones;
+non terminal Production instruccion;
+non terminal Production expresion;
+
+precedence left MAS,MENOS;
+precedence left POR,DIVIDIDO;
+precedence right UMENOS; 
+
+start with ini; 
+
+ini::=instrucciones:a                           {:
+                                                    //se guarda el AST, que es la lista principal de instrucciones en la variable
+                                                    //AST que se definió dentro del parser
+                                                    parser.AST=a.getInstructions();
+                                                    Node NODERAIZ = new Node("INIT"); NODERAIZ.addSon(a.getNode());
+                                                    parser.arbol=new Arbol(NODERAIZ);
+                                                :}
+;
+
+instrucciones ::= 
+   instrucciones:a instruccion:b                {:
+                                                    RESULT=new Production(new Node("Instrucciones"), a.getInstructions());
+                                                    RESULT.addIns(b.getIns());
+                                                    RESULT.addSon(a);
+                                                    RESULT.addSon(b);
+                                                :}
+ | instruccion:a                                {:
+                                                    RESULT=new Production(new Node("Instrucciones"), new LinkedList<>());
+                                                    RESULT.addIns(a.getIns());
+                                                    RESULT.addSon(a);
+                                                :}
+; 
+
+instruccion ::= 
+   REVALUAR CORIZQ expresion:a CORDER PTCOMA    {:
+                                                    RESULT=new Production(new Node("Instruccion"), new Evaluar((Operacion)a.getIns()));
+                                                    RESULT.addSon("EVALUAR");
+                                                    RESULT.addSon("[");
+                                                    RESULT.addSon(a); 
+                                                    RESULT.addSon("]");
+                                                    RESULT.addSon(";");
+                                                :}
+;
+
+expresion  ::= 
+    MENOS expresion:a                           {:
+                                                    RESULT=new Production(new Node("Expresion"), new Operacion((Operacion)a.getIns(),Operacion.Tipo_operacion.NEGATIVO));
+                                                    RESULT.addSon("-");
+                                                    RESULT.addSon(a);                                                
+                                                :}%prec UMENOS     
+ |  expresion:a MAS        expresion:b          {:
+                                                    RESULT=new Production(new Node("Expresion"), new Operacion((Operacion)a.getIns(),(Operacion)b.getIns(),Operacion.Tipo_operacion.SUMA));
+                                                    RESULT.addSon(a);
+                                                    RESULT.addSon("+");
+                                                    RESULT.addSon(b);
+                                                :}
+ |  expresion:a MENOS      expresion:b          {:
+                                                    RESULT=new Production(new Node("Expresion"), new Operacion((Operacion)a.getIns(),(Operacion)b.getIns(),Operacion.Tipo_operacion.RESTA));
+                                                    RESULT.addSon(a);
+                                                    RESULT.addSon("-");
+                                                    RESULT.addSon(b);
+                                                :}
+ |  expresion:a POR        expresion:b          {:
+                                                    RESULT=new Production(new Node("Expresion"), new Operacion((Operacion)a.getIns(),(Operacion)b.getIns(),Operacion.Tipo_operacion.MULTIPLICACION));
+                                                    RESULT.addSon(a);
+                                                    RESULT.addSon("*");
+                                                    RESULT.addSon(b);
+                                                :}
+ |  expresion:a DIVIDIDO   expresion:b          {:                                                
+                                                    RESULT=new Production(new Node("Expresion"), new Operacion((Operacion)a.getIns(),(Operacion)b.getIns(),Operacion.Tipo_operacion.DIVISION));
+                                                    RESULT.addSon(a);
+                                                    RESULT.addSon("/");
+                                                    RESULT.addSon(b);
+                                                :}
+ |  ENTERO:a                                    {:
+                                                    RESULT=new Production(new Node(null, a), new Operacion(a,Operacion.Tipo_operacion.NUMERO));
+                                                :}
+ |  DECIMAL:a                                   {:
+                                                    RESULT=new Production(new Node(null, a), new Operacion(a,Operacion.Tipo_operacion.NUMERO));
+                                                :}
+ |  PARIZQ expresion:a PARDER                   {:
+                                                    RESULT=new Production(new Node("Expresion"), a.getIns());
+                                                    RESULT.addSon("(");
+                                                    RESULT.addSon(a);
+                                                    RESULT.addSon(")");
+                                                :}
+;
