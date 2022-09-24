@@ -4,6 +4,7 @@
  */
 package Structures.Instructions;
 
+import static Utils.Analizador.getIdentacion;
 import java.util.LinkedList;
 
 /**
@@ -74,23 +75,23 @@ public class If implements Instruccion{
      * su ejecución
      */
     @Override
-    public String traducir() {
+    public String traducir(int identacion) {
         
-        String traduccion = "Este es un IF para la OP "+this.condicion.traducir()+":\n";
+        String traduccion = Utils.Analizador.getIdentacion(identacion) + "Este es un IF para la OP "+this.condicion.traducir(identacion)+":\n";
         if(listaInstrucciones != null)
             for(Instruccion ins: listaInstrucciones){
-                traduccion += ins.traducir();
+                traduccion += Utils.Analizador.getIdentacion(identacion + 1) + ins.traducir(identacion+1);
             }
         if(listaElseIfInstrucciones != null){
-            traduccion += "Si no se cumple entonces ";
+            traduccion += Utils.Analizador.getIdentacion(identacion) + "Si no se cumple entonces ";
             for(Instruccion ins: listaElseIfInstrucciones){
-                traduccion += ins.traducir();
+                traduccion += Utils.Analizador.getIdentacion(identacion) + ins.traducir(identacion);
             }
         }
         if(listaInsElse != null){
-            traduccion += "Si ninguna se cumple entonces: \n";
+            traduccion += Utils.Analizador.getIdentacion(identacion) + "Si ninguna se cumple entonces: \n";
             for(Instruccion ins: listaInsElse){
-                traduccion += ins.traducir();
+                traduccion += Utils.Analizador.getIdentacion(identacion + 1) + ins.traducir(identacion+1);
             }
         }
         return traduccion;

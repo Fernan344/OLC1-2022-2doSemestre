@@ -6,10 +6,19 @@ Evaluar[-(1+1)];
 if(5+5<6+6){
 Evaluar[-(-1)];
 mientras(5<6){
-	Evaluar[55+55];
-	if(5<6){
-		Evaluar[5];
-	}
+Evaluar[55+55];
+mientras(5<6){
+Evaluar[55+55];
+mientras(5<6){
+Evaluar[55+55];
+mientras(5<6){
+Evaluar[55+55];
+}
+}
+}
+if(5<6){
+Evaluar[5];
+}
 }
 }else if (5<6) {
 Evaluar[3+3];

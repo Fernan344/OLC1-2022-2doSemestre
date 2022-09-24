@@ -108,8 +108,8 @@ instruccion ::=
                                                                                         RESULT.addSon(b);
                                                                                         RESULT.addSon("}");
                                                                                     :}
- | RIF PARIZQ expresion_relacional:a PARDER LLAVIZQ instrucciones:b LLAVDER                                                     {:
-                                                                                                                                RESULT=new Production(new Node("Instruccion"), new If((Operacion)a.getIns(), a.getInstructions()));
+ | RIF PARIZQ expresion_relacional:a PARDER LLAVIZQ instrucciones:b LLAVDER                                                 {:
+                                                                                                                                RESULT=new Production(new Node("Instruccion"), new If((Operacion)a.getIns(), b.getInstructions()));
                                                                                                                                 RESULT.addSon("IF");
                                                                                                                                 RESULT.addSon("(");
                                                                                                                                 RESULT.addSon(a);
@@ -136,7 +136,7 @@ instruccion ::=
 ;
 
 else_ifs ::= 
-    else_ifs:l RELSE RIF PARIZQ expresion_relacional:a PARDER LLAVIZQ instrucciones:b LLAVDER                                   {:                                                                                                                                
+    else_ifs:l RELSE RIF PARIZQ expresion_relacional:a PARDER LLAVIZQ instrucciones:b LLAVDER                                {:                                                                                                                                
                                                                                                                                 RESULT=new Production(new Node("ELSE_IFS"), l.getInstructions());
                                                                                                                                 RESULT.addIns(new If((Operacion)a.getIns(), b.getInstructions()));
                                                                                                                                 RESULT.addSon(l);

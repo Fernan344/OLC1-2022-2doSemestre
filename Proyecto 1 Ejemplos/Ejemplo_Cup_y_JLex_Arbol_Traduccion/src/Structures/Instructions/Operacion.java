@@ -76,18 +76,18 @@ public class Operacion implements Instruccion{
     }
 
     @Override
-    public String traducir() {
+    public String traducir(int identacion) {
         /* ======== OPERACIONES ARITMETICAS ======== */
         if(tipo== Tipo_operacion.DIVISION){
-            return operadorIzq.traducir() + "/" + operadorDer.traducir();
+            return operadorIzq.traducir(identacion) + "/" + operadorDer.traducir(identacion);
         }else if(tipo== Tipo_operacion.MULTIPLICACION){
-            return operadorIzq.traducir() + "*" + operadorDer.traducir();
+            return operadorIzq.traducir(identacion) + "*" + operadorDer.traducir(identacion);
         }else if(tipo== Tipo_operacion.RESTA){
-            return operadorIzq.traducir() + "-" + operadorDer.traducir();
+            return operadorIzq.traducir(identacion) + "-" + operadorDer.traducir(identacion);
         }else if(tipo== Tipo_operacion.SUMA){
-            return operadorIzq.traducir() + "+" + operadorDer.traducir();
+            return operadorIzq.traducir(identacion) + "+" + operadorDer.traducir(identacion);
         }else if(tipo== Tipo_operacion.NEGATIVO){
-            return "-" + operadorIzq.traducir();
+            return "-" + operadorIzq.traducir(identacion);
         
         }
         /* ======== OPERACIONES UNARIOS ======== */
@@ -102,11 +102,11 @@ public class Operacion implements Instruccion{
         }
         /* ======== OPERACIONES RELACIONALES ======== */
         else if(tipo== Tipo_operacion.MAYOR_QUE){
-            return operadorIzq.traducir()+ ">" + operadorDer.traducir();
+            return operadorIzq.traducir(identacion)+ ">" + operadorDer.traducir(identacion);
         }else if(tipo== Tipo_operacion.MENOR_QUE){
-            return operadorIzq.traducir()+ "<" +operadorDer.traducir();
+            return operadorIzq.traducir(identacion)+ "<" + operadorDer.traducir(identacion);
         }else if(tipo== Tipo_operacion.CONCATENACION){
-            return operadorIzq.traducir().toString() +"+"+operadorDer.traducir().toString();
+            return operadorIzq.traducir(identacion)+ "+" + operadorDer.traducir(identacion);
         }else{
             return "";
         }

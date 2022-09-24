@@ -36,10 +36,10 @@ public class While implements Instruccion{
      * @return Esta instrucción retorna nulo porque no produce ningun valor
      */
     @Override
-    public String traducir() {
-        String traduccion = "Mientras esta condicion se cumpla "+condicion.traducir()+" tenemos que hacer:\n";
+    public String traducir(int identacion) {
+        String traduccion = Utils.Analizador.getIdentacion(identacion) + "Mientras esta condicion se cumpla "+condicion.traducir(identacion)+" tenemos que hacer:\n";
         for(Instruccion ins:listaInstrucciones){
-            traduccion +=ins.traducir();
+            traduccion += Utils.Analizador.getIdentacion(identacion + 1) + ins.traducir(identacion+1);
         }
         return traduccion;
     }   

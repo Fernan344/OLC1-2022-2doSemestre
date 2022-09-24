@@ -52,15 +52,23 @@ public class Analizador {
         //la lista principal de instrucciones.
         
         String traduccion = "";
-        
+        int identacion = 0;
         for(Instruccion ins:ast){
             //Si existe un error léxico o sintáctico en cierta instrucción esta
             //será inválida y se cargará como null, por lo tanto no deberá ejecutarse
             //es por esto que se hace esta validación.
             if(ins!=null)
-                traduccion += ins.traducir();
+                traduccion += getIdentacion(identacion)+ins.traducir(identacion);
         }
         
         return traduccion;
+    }
+    
+    public static String getIdentacion(int identacion) {
+        String identacionTraduct = "";
+        for (int i=0; i<identacion; i++){
+            identacionTraduct += "              ";
+        }
+        return identacionTraduct;
     }
 }

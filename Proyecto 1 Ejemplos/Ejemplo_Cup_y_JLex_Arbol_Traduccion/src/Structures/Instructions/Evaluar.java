@@ -18,8 +18,8 @@ public class Evaluar implements Instruccion{
     }   
 
     @Override
-    public String traducir() {
-        return "estamos evaluando (" + valor.traducir() + ")\n";
+    public String traducir(int identacion) {
+        return Utils.Analizador.getIdentacion(identacion) + "estamos evaluando (" + valor.traducir(identacion) + ")\n";
     }
     
 }

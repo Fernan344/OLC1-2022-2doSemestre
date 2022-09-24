@@ -359,7 +359,7 @@ class CUP$Sintactico$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$Sintactico$stack.elementAt(CUP$Sintactico$top-1)).right;
 		Production b = (Production)((java_cup.runtime.Symbol) CUP$Sintactico$stack.elementAt(CUP$Sintactico$top-1)).value;
 		
-                                                                                                                                RESULT=new Production(new Node("Instruccion"), new If((Operacion)a.getIns(), a.getInstructions()));
+                                                                                                                                RESULT=new Production(new Node("Instruccion"), new If((Operacion)a.getIns(), b.getInstructions()));
                                                                                                                                 RESULT.addSon("IF");
                                                                                                                                 RESULT.addSon("(");
                                                                                                                                 RESULT.addSon(a);
