@@ -16,8 +16,6 @@ export default class SymbolTable {
 
   public setValor(id: String, valor: Simbolo): any{
     this.tablaActual.set(id, valor);
-
-    console.log(id+"="+this.tablaActual.get(id)?.getvalor())
     return null;
   }
 
