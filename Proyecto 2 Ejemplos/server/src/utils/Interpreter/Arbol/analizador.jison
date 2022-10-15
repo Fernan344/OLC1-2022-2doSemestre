@@ -4,6 +4,8 @@
     const errores = require('./Exceptions/Error');
     const nativo = require('./Expresions/Native');
     const aritmetico = require('./Expresions/Aritmetica');
+    const relacional = require('./Expresions/Relacional');
+    const logica = require('./Expresions/Logica');
     const Tipo = require('./Symbol/Type');
     const impresion = require('./Instructions/Imprimir');    
     const declaracion = require('./Instructions/Declaracion')
@@ -16,6 +18,10 @@
 %%
 "imprimir"      return 'RESPRINT';
 "entero"        return 'RESINT';
+
+">"             return 'MAYOR_QUE';
+
+"||"            return 'OR';
 
 "="             return 'IGUAL';
 "+"             return 'MAS';
@@ -36,6 +42,7 @@
 /lex
 
 %left 'MAS'
+%left 'MAYOR_QUE'
 
 %start INIT
 //Inicio
@@ -61,13 +68,27 @@ DECLARACION:
     RESINT IDENTIFICADOR IGUAL EXPRESION PTCOMA {$$=new declaracion.default($2, new Tipo.default(Tipo.DataType.ENTERO), $4, @1.first_line, @1.first_column);}
 ;
 
+IMPRIMIBLE:
+    EXPRESION {$$=$1;}  
+    | EXPRESION_RELACIONAL {$$=$1;}  
+    | EXPRESION_LOGICA {$$=$1;}  
+;
+
 IMPRIMIR : 
-    RESPRINT PARABRE EXPRESION PARCIERRA PTCOMA {$$=new impresion.default($3,@1.first_line,@1.first_column);}
+    RESPRINT PARABRE IMPRIMIBLE PARCIERRA PTCOMA {$$=new impresion.default($3,@1.first_line,@1.first_column);}
 ;
 
 EXPRESION : 
-    EXPRESION MAS EXPRESION {$$ = new aritmetico.default(aritmetico.tipoOp.SUMA, $1, $3, @1.first_line, @1.first_column)}
+    EXPRESION MAS EXPRESION {$$ = new aritmetico.default(aritmetico.tipoOp.SUMA, $1, $3, @1.first_line, @1.first_column);}
     | IDENTIFICADOR {$$ = new nativo.default(new Tipo.default(Tipo.DataType.IDENTIFICADOR), $1, @1.first_line, @1.first_column);}
     | ENTERO {$$= new nativo.default(new Tipo.default(Tipo.DataType.ENTERO),$1, @1.first_line, @1.first_column);}
     | CADENA {$$= new nativo.default(new Tipo.default(Tipo.DataType.CADENA),$1, @1.first_line, @1.first_column);}
+;
+
+EXPRESION_RELACIONAL :
+    EXPRESION MAYOR_QUE EXPRESION {$$ = new relacional.default(relacional.tipoOp.MAYOR, $1, $3, @1.first_line, @1.first_column);}
+;
+
+EXPRESION_LOGICA :
+    EXPRESION_RELACIONAL OR EXPRESION_RELACIONAL {$$ = new logica.default(logica.tipoOp.OR, $1, $3, @1.first_line, @1.first_column);}
 ;
