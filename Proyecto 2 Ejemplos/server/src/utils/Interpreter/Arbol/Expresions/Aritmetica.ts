@@ -29,7 +29,15 @@ export default class Aritmetico extends Instruccion {
                     return (`${valueIzq.toString()}${valueDer.toString()}`);
                 }
             }
-        }        
+        } else if(this.tipo===tipoOp.RESTA){    
+            let valueIzq = this.operacionIzq.interpretar(arbol, tabla);
+            let valueDer = this.operacionDer.interpretar(arbol, tabla);
+            if(this.operacionIzq.tipoDato.getTipo() === DataType.ENTERO){
+                if(this.operacionDer.tipoDato.getTipo() === DataType.ENTERO){
+                    return (Number(valueIzq)-Number(valueDer));
+                }
+            }
+        } 
         return null;
   }
 }

@@ -11,11 +11,32 @@ export default class SymbolTable {
 
   public getValor(id: String): any{
     let valor = this.tablaActual.get(id);
+    if(!valor) {
+      let actual: SymbolTable = this.getAnterior();
+      while(actual && !valor){
+        valor = actual.getTabla().get(id);
+        actual = actual.getAnterior();
+      }
+    }
     return valor;
   }
 
-  public setValor(id: String, valor: Simbolo): any{
-    this.tablaActual.set(id, valor);
+  public setValor(id: String, valor: Simbolo, declaration = true): any{
+    if(declaration) this.tablaActual.set(id, valor);
+    else {
+      let actual: SymbolTable = this
+      let oldValue = null
+      while(actual){
+        if(actual.getTabla().get(id)){
+          oldValue = actual.getTabla().get(id);
+          actual.getTabla().delete(id);
+          actual.getTabla().set(id, valor);
+          break;
+        }
+        actual = actual.getAnterior();
+      }
+      if(!oldValue) console.log('Error la variable no existe')
+    }
     return null;
   }
 
