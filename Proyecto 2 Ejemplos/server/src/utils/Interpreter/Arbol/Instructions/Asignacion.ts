@@ -4,7 +4,7 @@ import Simbolo from '../Symbol/Symbol';
 import tablaSimbolo from '../Symbol/SymbolTable';
 import Tipo, {DataType} from '../Symbol/Type';
 
-export default class Declaracion extends Instruccion {
+export default class Asignacion extends Instruccion {
     private id: String;
     private valor: Instruccion;
 
@@ -15,7 +15,8 @@ export default class Declaracion extends Instruccion {
     }
 
     public interpretar(arbol: Arbol, tabla: tablaSimbolo) {
-        tabla.setValor(this.id, new Simbolo(this.valor.tipoDato, this.id, this.valor.interpretar(arbol, tabla)), false);
+        const valorToAsign = this.valor.interpretar(arbol, tabla);
+        tabla.setValor(this.id, new Simbolo(this.valor.tipoDato, this.id, valorToAsign), false);
         return null;
     }
 }

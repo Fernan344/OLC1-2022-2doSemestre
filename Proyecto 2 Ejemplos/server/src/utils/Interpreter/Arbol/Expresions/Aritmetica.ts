@@ -34,6 +34,7 @@ export default class Aritmetico extends Instruccion {
             let valueDer = this.operacionDer.interpretar(arbol, tabla);
             if(this.operacionIzq.tipoDato.getTipo() === DataType.ENTERO){
                 if(this.operacionDer.tipoDato.getTipo() === DataType.ENTERO){
+                    this.tipoDato.setTipo(DataType.ENTERO);
                     return (Number(valueIzq)-Number(valueDer));
                 }
             }

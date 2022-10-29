@@ -13,6 +13,7 @@ export default class Nativo extends Instruccion {
   }
 
   interpretar(arbol: Three, tabla: SymbolTable) {
+    
     if(this.tipoDato.getTipo() === DataType.ENTERO){
         return this.valor;
     }else if(this.tipoDato.getTipo() === DataType.CADENA){

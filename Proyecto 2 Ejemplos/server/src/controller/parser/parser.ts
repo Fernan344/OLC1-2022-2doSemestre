@@ -12,7 +12,8 @@ export const parse = (req: Request & unknown, res: Response): void => {
     const { peticion } = req.body;
 
     try { 
-      let ast = new Three(parser.parse(peticion));
+      const returnThree = parser.parse(peticion)
+      let ast = new Three(returnThree);
       var tabla = new SymbolTable();
       ast.settablaGlobal(tabla);
       for (let i of ast.getinstrucciones()) {
@@ -26,7 +27,9 @@ export const parse = (req: Request & unknown, res: Response): void => {
           ast.actualizaConsola((<Errores>resultador).returnError());
         }        
       }
-      res.json({ consola: ast.getconsola(), errores: listaErrores, simbolos: [] });
+      const arbolGrafo = ast.getTree("ast");
+      console.log(arbolGrafo)
+      res.json({ consola: ast.getconsola(), grafo: arbolGrafo, errores: listaErrores, simbolos: [] });
     } catch (err) {
         console.log(err)
         res.json({ consola: '', error: err, errores: listaErrores, simbolos: [] });

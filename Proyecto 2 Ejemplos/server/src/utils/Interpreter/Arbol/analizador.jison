@@ -12,6 +12,7 @@
     const declaracion = require('./Instructions/Declaracion');
     const mientras = require('./Instructions/Mientras');
     const asignacion = require('./Instructions/Asignacion');
+    const { Nodo } = require('./Symbol/Three');
 %}
 %lex 
 
@@ -59,12 +60,27 @@
 //Definicion de gramatica
 %%
 
-INIT: INSTRUCCIONES EOF     {return $1;}
+INIT: INSTRUCCIONES EOF     {
+        return {
+            returnInstruction: $1.returnInstruction, 
+            nodeInstruction: (new Nodo("INIT")).generateProduction([$1.nodeInstruction, 'EOF'])            
+        };
+    }
 ;
 
 INSTRUCCIONES : 
-    INSTRUCCIONES INSTRUCCION   {$1.push($2); $$=$1;}
-    | INSTRUCCION               {$$=[$1];}
+    INSTRUCCIONES INSTRUCCION   {        
+        $$={
+            returnInstruction: [...$1.returnInstruction, $2.returnInstruction], 
+            nodeInstruction: (new Nodo("Instrucciones")).generateProduction([$1.nodeInstruction,  $2.nodeInstruction]) 
+        };
+    }
+    | INSTRUCCION               {
+        $$={
+            returnInstruction: [$1.returnInstruction],
+            nodeInstruction: (new Nodo("Instrucciones")).generateProduction([$1.nodeInstruction])
+        };
+    }
 ;
 
 INSTRUCCION :
@@ -72,7 +88,12 @@ INSTRUCCION :
     | WHILEINS              {$$=$1;}
     | ASIGNACION            {$$=$1;} 
     | IFINS                 {$$=$1;}
-    | DECLARACION           {$$=$1;}
+    | DECLARACION           {
+        $$={
+            returnInstruction: $1.returnInstruction, 
+            nodeInstruction: (new Nodo("INSTRUCCION")).generateProduction([$1.nodeInstruction]) 
+        };
+    }
     | INVALID               {controller.listaErrores.push(new errores.default('ERROR LEXICO',$1,@1.first_line,@1.first_column));}
     | error  PTCOMA         {controller.listaErrores.push(new errores.default(`ERROR SINTACTICO`,"Se esperaba token",@1.first_line,@1.first_column));}
 ;
@@ -114,7 +135,12 @@ ELSEIFSINS :
 /* DECLACION */
 
 DECLARACION:
-    RESINT IDENTIFICADOR IGUAL EXPRESION PTCOMA {$$=new declaracion.default($2, new Tipo.default(Tipo.DataType.ENTERO), $4, @1.first_line, @1.first_column);}
+    RESINT IDENTIFICADOR IGUAL EXPRESION PTCOMA {
+        $$={
+            returnInstruction: new declaracion.default($2, new Tipo.default(Tipo.DataType.ENTERO), $4.returnInstruction, @1.first_line, @1.first_column), 
+            nodeInstruction: (new Nodo('Declaracion')).generateProduction(['entero', 'identificador', 'igual', $4.nodeInstruction, 'ptcoma'])
+        }
+    }
 ;
 
 /* IMPRIMIR */
@@ -130,16 +156,37 @@ IMPRIMIR :
 
 /* EXPRESIONES */
 
-OPERACIONESARITMETICAS:
-    MAS     {$$=aritmetico.tipoOp.SUMA;}
-    | MENOS {$$=aritmetico.tipoOp.RESTA;}
-;
-
 EXPRESION : 
-    EXPRESION OPERACIONESARITMETICAS EXPRESION {$$ = new aritmetico.default($2, $1, $3, @1.first_line, @1.first_column);}
-    | IDENTIFICADOR {$$ = new nativo.default(new Tipo.default(Tipo.DataType.IDENTIFICADOR), $1, @1.first_line, @1.first_column);}
-    | ENTERO {$$= new nativo.default(new Tipo.default(Tipo.DataType.ENTERO),$1, @1.first_line, @1.first_column);}
-    | CADENA {$$= new nativo.default(new Tipo.default(Tipo.DataType.CADENA),$1, @1.first_line, @1.first_column);}
+    EXPRESION MAS EXPRESION {
+        $$={
+            returnInstruction: new aritmetico.default(aritmetico.tipoOp.SUMA, $1.returnInstruction, $3.returnInstruction, @1.first_line, @1.first_column),
+            nodeInstruction: (new Nodo('EXPRESION')).generateProduction([$1.nodeInstruction, 'SUMA', $3.nodeInstruction])
+        }
+    }
+    | EXPRESION MENOS EXPRESION {
+        $$={
+            returnInstruction: new aritmetico.default(aritmetico.tipoOp.RESTA, $1.returnInstruction, $3.returnInstruction, @1.first_line, @1.first_column),
+            nodeInstruction: (new Nodo('EXPRESION')).generateProduction([$1.nodeInstruction, 'MENOS', $3.nodeInstruction])
+        }
+    }
+    | IDENTIFICADOR {
+        $$={
+            returnInstruction: new nativo.default(new Tipo.default(Tipo.DataType.IDENTIFICADOR), $1, @1.first_line, @1.first_column),
+            nodeInstruction: (new Nodo('EXPRESION')).generateProduction(['IDENTIFICADOR'])
+        }
+    }
+    | ENTERO {
+        $$={
+            returnInstruction: new nativo.default(new Tipo.default(Tipo.DataType.ENTERO),$1, @1.first_line, @1.first_column),
+            nodeInstruction: (new Nodo('EXPRESION')).generateProduction(['ENTERO'])
+        }
+    }
+    | CADENA {
+        $$={
+            returnInstruction: new nativo.default(new Tipo.default(Tipo.DataType.CADENA),$1, @1.first_line, @1.first_column),
+            nodeInstruction: (new Nodo('EXPRESION')).generateProduction(['CADENA'])
+        }
+    }
 ;
 
 EXPRESION_RELACIONAL :
