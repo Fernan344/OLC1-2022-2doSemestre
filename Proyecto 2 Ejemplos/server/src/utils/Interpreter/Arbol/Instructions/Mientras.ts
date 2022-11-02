@@ -5,7 +5,7 @@ import Tipo, {DataType} from '../Symbol/Type';
 import SymbolTable from '../Symbol/SymbolTable';
 import cloneDeep from 'lodash/cloneDeep';
 
-export default class If extends Instruccion {
+export default class Mientras extends Instruccion {
     private operacion: Instruccion;
     private listaInstrucciones: Instruccion [];    
 

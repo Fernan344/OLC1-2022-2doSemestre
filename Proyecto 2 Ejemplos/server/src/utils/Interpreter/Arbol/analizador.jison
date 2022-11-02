@@ -8,7 +8,9 @@
     const logica = require('./Expresions/Logica');
     const Tipo = require('./Symbol/Type');
     const impresion = require('./Instructions/Imprimir');   
+    const procedureExec = require('./Instructions/ProcedureExec');
     const ifIns = require('./Instructions/IfIns');  
+    const procedureDec = require('./Instructions/ProcedureDec');
     const declaracion = require('./Instructions/Declaracion');
     const mientras = require('./Instructions/Mientras');
     const asignacion = require('./Instructions/Asignacion');
@@ -25,6 +27,7 @@
 "if"            return 'RESIF';
 "else"          return 'RESELSE';
 "mientras"      return 'RESWHILE';
+"void"          return 'RESVOID';
 
 ">"             return 'MAYOR_QUE';
 
@@ -33,11 +36,15 @@
 "-"             return 'MENOS';
 "="             return 'IGUAL';
 "+"             return 'MAS';
+":"             return 'DPUNTOS';
+","             return 'COMA';
 ";"             return 'PTCOMA';
 "("             return 'PARABRE';
 ")"             return 'PARCIERRA';
 "{"             return 'LLAVIZQ';
 "}"             return 'LLAVDER';
+"["             return 'CORABRE';
+"]"             return 'CORCIERRA';
 
 
 [ \r\t]+ { }
@@ -75,7 +82,7 @@ INSTRUCCIONES :
             nodeInstruction: (new Nodo("Instrucciones")).generateProduction([$1.nodeInstruction,  $2.nodeInstruction]) 
         };
     }
-    | INSTRUCCION               {
+    | INSTRUCCION          {
         $$={
             returnInstruction: [$1.returnInstruction],
             nodeInstruction: (new Nodo("Instrucciones")).generateProduction([$1.nodeInstruction])
@@ -84,10 +91,36 @@ INSTRUCCIONES :
 ;
 
 INSTRUCCION :
-    IMPRIMIR                {$$=$1;} 
-    | WHILEINS              {$$=$1;}
-    | ASIGNACION            {$$=$1;} 
-    | IFINS                 {$$=$1;}
+    EXECPROCEDURE PTCOMA {
+        $$={
+            returnInstruction: $1.returnInstruction, 
+            nodeInstruction: (new Nodo("INSTRUCCION")).generateProduction([$1.nodeInstruction]) 
+        };
+    } 
+    | IMPRIMIR  PTCOMA              {
+        $$={
+            returnInstruction: $1.returnInstruction, 
+            nodeInstruction: (new Nodo("INSTRUCCION")).generateProduction([$1.nodeInstruction]) 
+        };
+    } 
+    | WHILEINS              {
+        $$={
+            returnInstruction: $1.returnInstruction, 
+            nodeInstruction: (new Nodo("INSTRUCCION")).generateProduction([$1.nodeInstruction]) 
+        };
+    }
+    | ASIGNACION    PTCOMA        {
+        $$={
+            returnInstruction: $1.returnInstruction, 
+            nodeInstruction: (new Nodo("INSTRUCCION")).generateProduction([$1.nodeInstruction]) 
+        };
+    } 
+    | IFINS                 {
+        $$={
+            returnInstruction: $1.returnInstruction, 
+            nodeInstruction: (new Nodo("INSTRUCCION")).generateProduction([$1.nodeInstruction]) 
+        };
+    }
     | DECLARACION           {
         $$={
             returnInstruction: $1.returnInstruction, 
@@ -101,44 +134,174 @@ INSTRUCCION :
 /* ASIGNACION */ 
 
 ASIGNACION :
-    IDENTIFICADOR IGUAL EXPRESION PTCOMA 
-                            {$$ = new asignacion.default($1, $3,@1.first_line,@1.first_column);}
+    IDENTIFICADOR IGUAL EXPRESION 
+                            {
+                                $$ = {
+                                    returnInstruction: new asignacion.default($1, $3.returnInstruction,@1.first_line,@1.first_column),
+                                    nodeInstruction: (new Nodo("ASIGNACION")).generateProduction([$1, $2, $3.nodeInstruction])
+                                }
+                            }
 ;
 
 /* WHILE */ 
 
 WHILEINS:
-    RESWHILE PARABRE EXPRESION_LOGICA PARCIERRA LLAVIZQ INSTRUCCIONES LLAVDER
-                            {$$ = new mientras.default($3,$6,@1.first_line,@1.first_column)}
+    RESWHILE PARABRE EXPRESION_LOGICA PARCIERRA LLAVIZQ INSTRUCCIONES LLAVDER {
+        $$ = {
+            returnInstruction: new mientras.default($3.returnInstruction,$6.returnInstruction,@1.first_line,@1.first_column),
+            nodeInstruction: (new Nodo("WHILEINS")).generateProduction([$1, $2, $3.nodeInstruction, $4, $5, $6.nodeInstruction, $7])
+        }
+    }
 ;
 
 /*IF INS*/
 
 IFINS:
-    SIMPLEIF                {$$ = $1;}                            
+    SIMPLEIF                {
+        $$ = {
+            returnInstruction: $1.returnInstruction,
+            nodeInstruction: (new Nodo('IFINS')).generateProduction([$1.nodeInstruction])
+        }
+    }                            
     | RESIF PARABRE EXPRESION_LOGICA PARCIERRA LLAVIZQ INSTRUCCIONES LLAVDER ELSEIFSINS RESELSE LLAVIZQ INSTRUCCIONES LLAVDER 
-                            {$$=new ifIns.default($3,$6,$8,$11,@1.first_line,@1.first_column);} 
+    {
+        $$={
+            returnInstruction: new ifIns.default($3,$6,$8,$11,@1.first_line,@1.first_column),
+            nodeInstruction: (new Nodo('IFINS')).generateProduction([$1, $2, $3.nodeInstruction, $4, $5, $6.nodeInstruction, $7, $8.nodeInstruction, $9, $10, $11.nodeInstruction,$12])
+        };
+    } 
 ;
 
 SIMPLEIF:
-    RESIF PARABRE EXPRESION_LOGICA PARCIERRA LLAVIZQ INSTRUCCIONES LLAVDER 
-                            {$$=new ifIns.default($3,$6, undefined, undefined, @1.first_line, @1.first_column);}
+    RESIF PARABRE EXPRESION_LOGICA PARCIERRA LLAVIZQ INSTRUCCIONES LLAVDER {
+        $$={
+            returnInstruction: new ifIns.default($3,$6, undefined, undefined, @1.first_line, @1.first_column),
+            nodeInstruction: (new Nodo('SIMPLEIF')).generateProduction([$1, $2, $3.nodeInstruction, $4, $5, $6.nodeInstruction, $7])
+        }
+    }
 ;
 
 ELSEIFSINS :
     ELSEIFSINS RESELSE SIMPLEIF 
-                                                {$1.push($3); $$=$1;}
+                                                {
+                                                    $1.returnInstruction.push($3.returnInstruction); 
+                                                    $$={
+                                                        returnInstruction: $1.returnInstruction,
+                                                        nodeInstruction: (new Nodo('ELSEIFSINS')).generateProduction([$1.nodeInstruction, $2, $3.nodeInstruction])
+                                                    }
+                                                }
   | RESELSE SIMPLEIF  
-                                                {$$=[$2];;}
+                                                {
+                                                    $$={
+                                                        returnInstruction: [$2],
+                                                        nodeInstruction: (new Nodo('ELSEIFSINS')).generateProduction([$1, $2.nodeInstruction])
+                                                    }
+                                                }
+;
+
+/* TYPES */
+
+DATATYPES:
+    RESINT                                      {
+        $$={
+            returnInstruction: new Tipo.default(Tipo.DataType.ENTERO),
+            nodeInstruction: (new Nodo('DATATYPES')).generateProduction([$1])
+        }
+    }    
+;
+
+PROCEDURESDATATYPES:
+    DATATYPES {
+        $$={
+            returnInstruction: $1.returnInstruction,
+            nodeInstruction: (new Nodo('PROCEDURESDATATYPES')).generateProduction([$1.nodeInstruction])
+        }
+    }    
+    | RESVOID {
+        $$ = {
+            returnInstruction: new Tipo.default(Tipo.DataType.VOID),
+            nodeInstruction: (new Nodo('PROCEDURESDATATYPES')).generateProduction([$1])
+        }
+    }
 ;
 
 /* DECLACION */
 
 DECLARACION:
-    RESINT IDENTIFICADOR IGUAL EXPRESION PTCOMA {
+    DATATYPES IDENTIFICADOR IGUAL EXPRESION PTCOMA {
         $$={
-            returnInstruction: new declaracion.default($2, new Tipo.default(Tipo.DataType.ENTERO), $4.returnInstruction, @1.first_line, @1.first_column), 
-            nodeInstruction: (new Nodo('Declaracion')).generateProduction(['entero', 'identificador', 'igual', $4.nodeInstruction, 'ptcoma'])
+            returnInstruction: new declaracion.default($2, $1.returnInstruction, $4.returnInstruction, @1.first_line, @1.first_column), 
+            nodeInstruction: (new Nodo('Declaracion')).generateProduction([$1.nodeInstruction, 'identificador', 'igual', $4.nodeInstruction])
+        }
+    } 
+    | IDENTIFICADOR PARABRE DECLARATIONPARAMS PARCIERRA DPUNTOS PROCEDURESDATATYPES LLAVIZQ INSTRUCCIONES LLAVDER {
+        $$={
+            returnInstruction: new procedureDec.default($1, $6.returnInstruction, $8.returnInstruction, $3.returnInstruction, @1.first_line, @1.first_column), 
+            nodeInstruction: (new Nodo('Declaracion')).generateProduction([$1, $2, $3.nodeInstruction, $4, $5, $6.nodeInstruction, $7, $8.nodeInstruction, $9])
+        }
+    }
+;
+
+/* PROCEDURES */
+
+DECLARATIONPARAMS:
+    DECLARATIONPARAMS COMA DECLARATIONPARAM {
+        $1.returnInstruction.push($3.returnInstruction); 
+        $$={
+            returnInstruction: $1.returnInstruction,
+            nodeInstruction: (new Nodo('DECLARATIONPARAMS')).generateProduction([$1.nodeInstruction, $2, $3.nodeInstruction])
+        }
+    }
+    | DECLARATIONPARAM {
+        $$={
+            returnInstruction: [$1.returnInstruction],
+            nodeInstruction: (new Nodo('DECLARATIONPARAMS')).generateProduction([$1.nodeInstruction])
+        }
+    }
+    | {
+        $$={
+            returnInstruction: [],
+            nodeInstruction: (new Nodo('DECLARATIONPARAMS')).generateProduction(["VACIO"])
+        }
+    }
+;
+
+DECLARATIONPARAM:
+    DATATYPES IDENTIFICADOR {
+        $$={
+            returnInstruction: { id: $2, type: $1.returnInstruction },
+            nodeInstruction: (new Nodo('DECLARATIONPARAMS')).generateProduction([$1.nodeInstruction, $2])
+        }
+    }
+;
+
+EXECPROCEDURE:
+    IDENTIFICADOR CORABRE EXECPARAMS CORCIERRA {
+        $$={
+            returnInstruction: new procedureExec.default($1, $3.returnInstruction, @1.first_line, @1.first_column), 
+            nodeInstruction: (new Nodo('EXECPROCEDURE')).generateProduction([$1, $2, $3.nodeInstruction, $4])
+        }
+    }
+;
+
+EXECPARAMS:
+    EXECPARAMS COMA IMPRIMIBLE {
+        $1.returnInstruction.push($3.returnInstruction); 
+        $$={
+            returnInstruction: $1.returnInstruction,
+            nodeInstruction: (new Nodo('EXECPARAMS')).generateProduction([$1.nodeInstruction, $2, $3.nodeInstruction])
+        }
+    }
+    | IMPRIMIBLE {
+        $$={
+            returnInstruction: [$1.returnInstruction],
+            nodeInstruction: (new Nodo('EXECPARAMS')).generateProduction([$1.nodeInstruction])
+        }
+    }
+    | {
+        $$={
+            returnInstruction: [],
+            nodeInstruction: (new Nodo('EXECPARAMS')).generateProduction(["VACIO"])
         }
     }
 ;
@@ -146,12 +309,27 @@ DECLARACION:
 /* IMPRIMIR */
 
 IMPRIMIBLE:
-    EXPRESION {$$=$1;}  
-    | EXPRESION_LOGICA {$$=$1;}  
+    EXPRESION {
+        $$ = {
+            returnInstruction: $1.returnInstruction,
+            nodeInstruction: (new Nodo('IMPRIMIBLE')).generateProduction([$1.nodeInstruction])
+        }
+    }  
+    | EXPRESION_LOGICA {
+        $$ = {
+            returnInstruction: $1.returnInstruction,
+            nodeInstruction: (new Nodo('IMPRIMIBLE')).generateProduction([$1.nodeInstruction])
+        }
+    }  
 ;
 
 IMPRIMIR : 
-    RESPRINT PARABRE IMPRIMIBLE PARCIERRA PTCOMA {$$=new impresion.default($3,@1.first_line,@1.first_column);}
+    RESPRINT PARABRE IMPRIMIBLE PARCIERRA {
+        $$= {
+            returnInstruction: new impresion.default($3.returnInstruction,@1.first_line,@1.first_column),
+            nodeInstruction: (new Nodo('IMPRIMIR')).generateProduction([$1, $2, $3.nodeInstruction, $4])
+        }
+    }
 ;
 
 /* EXPRESIONES */
@@ -190,10 +368,25 @@ EXPRESION :
 ;
 
 EXPRESION_RELACIONAL :
-    EXPRESION MAYOR_QUE EXPRESION {$$ = new relacional.default(relacional.tipoOp.MAYOR, $1, $3, @1.first_line, @1.first_column);}
+    EXPRESION MAYOR_QUE EXPRESION {
+        $$ = {
+            returnInstruction: new relacional.default(relacional.tipoOp.MAYOR, $1.returnInstruction, $3.returnInstruction, @1.first_line, @1.first_column),
+            nodeInstruction: (new Nodo('EXPRESION_RELACIONAL')).generateProduction([$1.nodeInstruction, $2, $3.nodeInstruction])
+        }
+    }
 ;
 
 EXPRESION_LOGICA :
-    EXPRESION_LOGICA OR EXPRESION_RELACIONAL {$$ = new logica.default(logica.tipoOp.OR, $1, $3, @1.first_line, @1.first_column);}
-    | EXPRESION_RELACIONAL                   {$$ = $1;}
+    EXPRESION_LOGICA OR EXPRESION_RELACIONAL {
+        $$ = {
+            returnInstruction: new logica.default(logica.tipoOp.OR, $1.returnInstruction, $3.returnInstruction, @1.first_line, @1.first_column),
+            nodeInstruction: (new Nodo('EXPRESION_LOGICA')).generateProduction([$1.nodeInstruction, $2, $3.nodeInstruction])
+        }
+    }
+    | EXPRESION_RELACIONAL                   {
+        $$ = {
+            returnInstruction: $1.returnInstruction,
+            nodeInstruction: (new Nodo('EXPRESION_RELACIONAL')).generateProduction([$1.nodeInstruction])
+        }
+    }
 ;

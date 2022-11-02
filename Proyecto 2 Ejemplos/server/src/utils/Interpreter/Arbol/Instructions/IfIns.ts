@@ -3,6 +3,7 @@ import Arbol from '../Symbol/Three';
 import tablaSimbolo from '../Symbol/SymbolTable';
 import Tipo, {DataType} from '../Symbol/Type';
 import SymbolTable from '../Symbol/SymbolTable';
+import ReturnIns from '../Expresions/ReturnIns';
 
 export default class If extends Instruccion {
     private operacionIf: Instruccion;
@@ -30,6 +31,9 @@ export default class If extends Instruccion {
         if((condition)){
             const tablaLocal = new SymbolTable(tabla)
             for(let i of this.listaInstrucciones){
+                if(i instanceof ReturnIns){
+                    return i;
+                }
                 i.interpretar(arbol, tablaLocal)
             }
             return true

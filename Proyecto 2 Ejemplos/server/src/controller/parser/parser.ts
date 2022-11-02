@@ -21,14 +21,15 @@ export const parse = (req: Request & unknown, res: Response): void => {
           listaErrores.push(i);
           ast.actualizaConsola((<Errores>i).returnError());
         }
+        //console.log(i)
         var resultador = i instanceof Instruccion ? i.interpretar(ast, tabla) : new Errores("ERROR SEMANTICO", "no se puede ejecutar la instruccion", 0, 0);
         if (resultador instanceof Errores) {
           listaErrores.push(resultador);
           ast.actualizaConsola((<Errores>resultador).returnError());
         }        
-      }
+      }      
       const arbolGrafo = ast.getTree("ast");
-      console.log(arbolGrafo)
+      //console.log(arbolGrafo)
       res.json({ consola: ast.getconsola(), grafo: arbolGrafo, errores: listaErrores, simbolos: [] });
     } catch (err) {
         console.log(err)

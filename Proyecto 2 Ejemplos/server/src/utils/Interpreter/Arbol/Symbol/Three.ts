@@ -9,6 +9,7 @@ export default class Three {
   private errores: Array<Errores>;
   private consola: String;
   private tablaGlobal: tablaSimbolo;
+  private semanticErrors: any[];
   private raiz: Nodo;
   private graphIndex: number;
   constructor(production: any) {
@@ -17,9 +18,15 @@ export default class Three {
     this.tablaGlobal = new tablaSimbolo();
     this.errores = new Array<Errores>();
     this.raiz = production.nodeInstruction;
+    this.semanticErrors = [];
     this.graphIndex = 0;
   }
-  
+  public setSemanticError(error: string){
+    this.semanticErrors.push(error)
+  }
+  public getSemanticError(){
+    return this.semanticErrors;
+  }
   public getconsola(): String {
     return this.consola;
   }
@@ -52,7 +59,6 @@ export default class Three {
   }
   public buildTree(padre: Nodo, nodoPadre: CNode, digraph: CDigraph){
     const nodos = padre.getHijos()
-    console.log(nodos)
     for(let i=0; i<nodos.length; i++){
         const nodo = nodos[i];
         const node = new CNode(this.graphIndex++, nodo.getValor());
